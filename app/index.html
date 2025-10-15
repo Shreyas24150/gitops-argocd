@@ -1,10 +1,310 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <title>Guestbook App</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GitOps • ArgoCD • K3s — Demo</title>
+  <meta name="description" content="GitOps with ArgoCD on K3s — demo & guide.">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0f1724; 
+      --card:#0b1220;
+      --muted:#9aa4b2;
+      --glass: rgba(255,255,255,0.04);
+      --accent1: #6EE7B7;
+      --accent2: #60A5FA;
+      --radius: 14px;
+      --max-width: 1100px;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:
+        radial-gradient(800px 400px at 10% 10%, rgba(96,165,250,0.06), transparent 12%),
+        radial-gradient(700px 350px at 95% 85%, rgba(110,231,183,0.04), transparent 12%),
+        var(--bg);
+      color: #e6eef6;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      line-height:1.45;
+      padding:32px;
+      display:flex;
+      justify-content:center;
+    }
+    .container{width:100%;max-width:var(--max-width);}
+
+    /* Header / Hero */
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{
+      width:56px;height:56px;border-radius:12px;
+      background:linear-gradient(135deg,var(--accent2),var(--accent1));
+      display:grid;place-items:center;font-weight:800;color:#04263b;
+      box-shadow:0 6px 20px rgba(2,6,23,0.6);
+    }
+    .brand h1{margin:0;font-size:18px;letter-spacing:-0.2px}
+    .brand p{margin:0;font-size:12px;color:var(--muted)}
+
+    nav a{
+      color:var(--muted);text-decoration:none;margin-left:14px;font-weight:600;font-size:14px;
+      padding:8px 12px;border-radius:10px;
+    }
+    nav a.primary{
+      background:linear-gradient(90deg, rgba(96,165,250,0.12), rgba(110,231,183,0.06));
+      color:#dff8f1;
+    }
+
+    /* Grid */
+    .grid{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start}
+    @media (max-width:940px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:var(--radius);padding:20px;box-shadow:0 6px 30px rgba(2,6,23,0.6);
+      border:1px solid rgba(255,255,255,0.03);
+    }
+
+    /* Hero content */
+    .hero{padding:28px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));}
+    .hero h2{margin:0 0 8px 0;font-size:26px}
+    .hero p{margin:0;color:var(--muted);font-size:15px}
+    .badges{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}
+    .badge{
+      background:var(--glass);padding:8px 10px;border-radius:999px;font-weight:600;color:var(--muted);font-size:13px;
+      border:1px solid rgba(255,255,255,0.02)
+    }
+
+    .actions{display:flex;gap:10px;margin-top:18px}
+    .btn{
+      padding:10px 14px;border-radius:12px;font-weight:700;border:0;cursor:pointer;font-size:14px;
+      background:linear-gradient(90deg,var(--accent2),var(--accent1));
+      color:#04263b;box-shadow:0 8px 24px rgba(6,11,28,0.55)
+    }
+    .btn.ghost{background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,0.04)}
+
+    /* Right column */
+    .meta-list{display:flex;flex-direction:column;gap:12px}
+    .meta-item{display:flex;flex-direction:column;gap:6px}
+    .meta-item small{color:var(--muted);font-size:12px}
+    .code{
+      background:linear-gradient(180deg, rgba(3,7,18,0.6), rgba(3,7,18,0.5));
+      padding:12px;border-radius:10px;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+      font-size:13px;color:#cbe7ff;border:1px solid rgba(255,255,255,0.02);
+      overflow:auto;
+    }
+
+    /* Features / Flow */
+    .features{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:18px}
+    @media (max-width:700px){.features{grid-template-columns:1fr}}
+    .feature{
+      background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005));
+      padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.02)
+    }
+    .feature h4{margin:0 0 6px 0}
+    .muted{color:var(--muted);font-size:14px}
+
+    /* Architecture SVG */
+    .arch{display:flex;gap:14px;align-items:center;justify-content:center;margin-top:18px}
+
+    footer{margin-top:28px;color:var(--muted);font-size:13px;text-align:center}
+    a.link{color:inherit;text-decoration:underline}
+
+    /* small helpers */
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,0.02);font-weight:700;color:var(--muted);font-size:12px}
+    .center{display:flex;align-items:center;gap:10px}
+  </style>
 </head>
-<body style="font-family:sans-serif;text-align:center;margin-top:100px;">
-  <h1>🚀 Welcome to Guestbook App v1</h1>
-  <p>This app is deployed via ArgoCD using GitOps!</p>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <div class="logo">G</div>
+        <div>
+          <h1>GitOps • ArgoCD • K3s</h1>
+          <p>Showcase — GitOps demo (Guestbook)</p>
+        </div>
+      </div>
+
+      <nav>
+        <a class="primary" href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#how">How it Works</a>
+        <a href="#repo" id="repoLink">Repo</a>
+      </nav>
+    </header>
+
+    <main class="grid">
+      <!-- LEFT: content -->
+      <section>
+        <div class="card hero" id="overview">
+          <h2>GitOps Workflow — live demo</h2>
+          <p>Automatic deployments using <strong>ArgoCD</strong> that keep your K3s cluster in sync with manifests stored in Git. CI builds images, updates manifests in Git, and ArgoCD deploys them.</p>
+
+          <div class="badges" aria-hidden="true">
+            <span class="badge">K3s</span>
+            <span class="badge">ArgoCD</span>
+            <span class="badge">GitHub Actions</span>
+            <span class="badge">Docker Hub</span>
+            <span class="badge">GitOps</span>
+          </div>
+
+          <div class="actions">
+            <button class="btn ghost" onclick="openRepo()">View Repo</button>
+          </div>
+
+          <div class="features" style="margin-top:22px">
+            <div class="feature">
+              <h4>What this project demonstrates</h4>
+              <p class="muted">End-to-end GitOps: CI builds image → pushes to Docker Hub → updates manifest in Git → ArgoCD auto-syncs the cluster.</p>
+            </div>
+            <div class="feature">
+              <h4>Why GitOps?</h4>
+              <p class="muted">Declarative deployments, audit trail via Git, easy rollbacks, and consistent environments across teams.</p>
+            </div>
+            <div class="feature">
+              <h4>Production-ready touches</h4>
+              <p class="muted">RBAC for ArgoCD, automated sync & pruning, project isolation, branch protection, and monitoring hooks (Prometheus / Grafana).</p>
+            </div>
+            <div class="feature">
+              <h4>Included files</h4>
+              <p class="muted">`deployment.yaml`, `service.yaml`, `kustomization.yaml`, `argocd/app-guestbook.yaml`, and a GitHub Actions workflow.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" id="architecture" style="margin-top:18px">
+          <h3 style="margin-top:0">Architecture</h3>
+          <div class="arch" aria-hidden="true">
+            <!-- Simple inline SVG diagram -->
+            <svg width="100%" height="140" viewBox="0 0 820 140" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1">
+                  <stop offset="0" stop-color="#60A5FA"/>
+                  <stop offset="1" stop-color="#6EE7B7"/>
+                </linearGradient>
+                <filter id="s" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#000" flood-opacity="0.25"/>
+                </filter>
+              </defs>
+
+              <!-- GitHub -->
+              <rect x="14" y="20" width="140" height="100" rx="12" fill="#0b1220" stroke="rgba(255,255,255,0.04)"/>
+              <text x="84" y="50" font-size="13" text-anchor="middle" fill="#a8c8ff" font-weight="700">GitHub</text>
+              <text x="84" y="72" font-size="11" text-anchor="middle" fill="#9aa4b2">Manifests & CI</text>
+
+              <!-- Actions -->
+              <rect x="180" y="20" width="140" height="100" rx="12" fill="#071025" stroke="rgba(255,255,255,0.03)"/>
+              <text x="250" y="50" font-size="13" text-anchor="middle" fill="#a8c8ff" font-weight="700">GitHub Actions</text>
+              <text x="250" y="72" font-size="11" text-anchor="middle" fill="#9aa4b2">Build → Push → Update Git</text>
+
+              <!-- ArgoCD -->
+              <rect x="380" y="10" width="160" height="120" rx="12" fill="url(#g1)" filter="url(#s)" opacity="0.95"/>
+              <text x="460" y="58" font-size="13" text-anchor="middle" fill="#04263b" font-weight="800">ArgoCD</text>
+              <text x="460" y="80" font-size="11" text-anchor="middle" fill="#04263b">Git → Cluster Sync</text>
+
+              <!-- K3s -->
+              <rect x="580" y="20" width="220" height="100" rx="12" fill="#071025" stroke="rgba(255,255,255,0.03)"/>
+              <text x="690" y="50" font-size="13" text-anchor="middle" fill="#a8c8ff" font-weight="700">K3s Cluster</text>
+              <text x="690" y="72" font-size="11" text-anchor="middle" fill="#9aa4b2">Pods, Services, Ingress</text>
+
+              <!-- arrows -->
+              <path d="M154 70 H176" stroke="rgba(255,255,255,0.18)" stroke-width="2" marker-end="url(#arrow)"/>
+              <path d="M320 70 H380" stroke="rgba(255,255,255,0.18)" stroke-width="2" marker-end="url(#arrow)"/>
+              <path d="M540 70 H580" stroke="rgba(255,255,255,0.18)" stroke-width="2" marker-end="url(#arrow)"/>
+
+              <defs>
+                <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                  <path d="M0,0 L6,3 L0,6 L1,3 z" fill="rgba(255,255,255,0.18)"></path>
+                </marker>
+              </defs>
+            </svg>
+          </div>
+
+          <p class="muted" style="margin-top:14px">Architecture: CI updates Git → ArgoCD syncs cluster → K3s runs pods. Everything is recorded in Git for traceability and rollbacks.</p>
+        </div>
+
+        <div class="card" id="how" style="margin-top:18px">
+          <h3 style="margin-top:0">How it works — step-by-step</h3>
+
+          <ol style="padding-left:18px;color:var(--muted);margin-top:10px">
+            <li><strong>Code change / push:</strong> Developer pushes code or Dockerfile to GitHub.</li>
+            <li><strong>CI builds image:</strong> GitHub Actions builds image and pushes to Docker Hub.</li>
+            <li><strong>CI updates manifest:</strong> Workflow patches `deployment.yaml` with new image tag and commits to Git.</li>
+            <li><strong>ArgoCD detects change:</strong> ArgoCD pulls the new manifests and applies them to the cluster.</li>
+            <li><strong>K3s runs update:</strong> Kubernetes pulls image, creates new Pods — app is updated.</li>
+          </ol>
+
+          <h4 style="margin-top:14px">Quick commands</h4>
+          <div class="code" id="cmds">
+<pre>
+# check nodes
+kubectl get nodes -o wide
+
+# see pods & node where they run
+kubectl get pods -o wide
+
+# check service (nodeport)
+kubectl get svc guestbook -n default
+
+# apply argocd app (first time)
+kubectl apply -f argocd/app-guestbook.yaml -n argocd
+</pre>
+          </div>
+
+          <p class="muted" style="margin-top:12px">Tip: Replace placeholders in the repo with your Docker Hub & GitHub user names.</p>
+        </div>
+
+      </section>
+
+      <!-- RIGHT: meta / quick-links -->
+      <aside>
+        <div class="card meta-list">
+          <div class="meta-item">
+            <small>Repository</small>
+            <div class="center">
+              <div class="pill">github.com/<strong id="ghuser">Shreyas24150</strong>/gitops-argocd</div>
+            </div>
+            <a id="repoBtn" class="link" href="#" style="margin-top:8px;display:inline-block">Open repository</a>
+          </div>
+
+          <div class="meta-item">
+            <small>Docker Image</small>
+            <div class="code" style="padding:8px">shreyas24150/guestbook:v1</div>
+          </div>
+
+          <div class="meta-item" style="margin-top:6px">
+            <small>ArgoCD app</small>
+            <div class="code" style="padding:8px">argocd/app-guestbook.yaml</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:8px">Auto-sync: <strong style="color:#9ee7c9">enabled</strong></div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <h4 style="margin-top:0">Contact</h4>
+          <p class="muted">Shreyas - <a class="link" href="mailto:shreyasacharya6516@gmail.com">shreyasacharya6516@gmail.com</a></p>
+          <p style="margin-top:8px" class="muted">Want this page as a ZIP? Or want me to inject your repo & Docker names for you — say the word.</p>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      Built with ❤️ • GitOps • ArgoCD • K3s — <span style="color:var(--muted)">Showcase</span>
+    </footer>
+  </div>
+
+  <script>
+    const GITHUB_USER = "Shreyas24150";         
+    const REPO = "gitops-argocd";                      
+    const DOCKER_USER = "shreyas24150";     
+
+    document.getElementById('ghuser').textContent = GITHUB_USER || "Shreyas24150";
+    document.getElementById('repoBtn').href = `https://github.com/${GITHUB_USER}/${REPO}`;
+    document.getElementById('repoLink').href = `https://github.com/${GITHUB_USER}/${REPO}#readme`;
+    
+    function openRepo(){ window.open(`https://github.com/${GITHUB_USER}/${REPO}`, "_blank"); }
+    function copyText(t){ navigator.clipboard && navigator.clipboard.writeText(t).then(()=> alert("copied to clipboard"))}
+  </script>
 </body>
 </html>
