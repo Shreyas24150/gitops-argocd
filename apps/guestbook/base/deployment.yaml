@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: guestbook
-          image: shreyas24150/guestbook:v5
+          image: shreyas24150/guestbook:v6
           ports:
             - containerPort: 80
           resources:
