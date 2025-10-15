@@ -42,6 +42,7 @@ jobs:
           git config user.email "shreyasacharya6516@gmail.com"
           git add $DEPLOYMENT_FILE
           git commit -m "Update image to $IMAGE_NAME:${{ env.IMAGE_TAG }}"
+          git pull --rebase origin main
           git push https://$GH_TOKEN@github.com/Shreyas24150/gitops-argocd.git HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
